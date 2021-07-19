@@ -34,6 +34,8 @@ setInterval(() => {
         await page.setCookie(...deserializedCookies)
 
         await page.goto('https://store.steampowered.com/account/redeemwalletcode')
+        await page.setViewport({ width: 1920, height: 1080 })
+
         await delay(3000);
 
         const cardCode = RandomId()
@@ -53,11 +55,12 @@ setInterval(() => {
                 statData = (JSON.parse(statData))
                 statData.push({
                     code: cardCode,
-                    status: 'valid'
+                    status: 'success'
                 })
                 await fs.writeFileSync('stats.json', JSON.stringify(statData));
             }
-            console.log('valid')
+            console.log('success: ', cardCode)
+            await page.screenshot({ path: 'success.png' });
         } else {
             let statData = fs.readFileSync('stats.json');
             statData = (JSON.parse(statData))
@@ -66,7 +69,7 @@ setInterval(() => {
                 status: 'not valid'
             })
             await fs.writeFileSync('stats.json', JSON.stringify(statData));
-            console.log('not valid')
+            console.log('not valid: ')
         }
         // console.log('after waiting -> code');
 
