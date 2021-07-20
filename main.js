@@ -13,7 +13,6 @@ const RandomId = () => {
 
 
 const puppeteer = require('puppeteer');
-const data = require('./config.json');
 const fs = require('fs');
 
 function delay(time) {
@@ -22,6 +21,8 @@ function delay(time) {
     });
 }
 
+const data = require('./stats.json');
+let length = data.length;
 setInterval(() => {
     // your code goes here...
     (async () => {
@@ -36,7 +37,7 @@ setInterval(() => {
         await page.goto('https://store.steampowered.com/account/redeemwalletcode')
         await page.setViewport({ width: 1920, height: 1080 })
 
-        await delay(3000);
+        await delay(1000);
 
         const cardCode = RandomId()
         await page.type('#wallet_code', cardCode)
@@ -48,8 +49,12 @@ setInterval(() => {
 
         let element = await page.$('#error_display')
         let value = await page.evaluate(el => el.textContent, element)
+        
+        let button = await page.$('#validate_btn > span')
+        let buttonValue = await page.evaluate(el => el.textContent, button)
+        length += 1
 
-        if (value != `There was an error redeeming the entered code.The code may be invalid. Please carefully verify the characters as you re-enter the code and double check to see if you've mistyped your key. I, L, and 1 can look alike, as can V and Y, and 0 and O.The code may not yet have been activated.  It may take several hours after time of purchase before activation is completed by your retailer, please wait and try redeeming the code again in a little while.If the currency of the code you are attempting to redeem is different than the region in which you are located, you may not be able to redeem this gift card to your account.  If this is the case please return this code to the retailer where it was purchased.If the problem persists, please contact Steam Support for further assistance.`) {
+        if (value != `There was an error redeeming the entered code.The code may be invalid. Please carefully verify the characters as you re-enter the code and double check to see if you've mistyped your key. I, L, and 1 can look alike, as can V and Y, and 0 and O.The code may not yet have been activated.  It may take several hours after time of purchase before activation is completed by your retailer, please wait and try redeeming the code again in a little while.If the currency of the code you are attempting to redeem is different than the region in which you are located, you may not be able to redeem this gift card to your account.  If this is the case please return this code to the retailer where it was purchased.If the problem persists, please contact Steam Support for further assistance.` && buttonValue != 'Working') {
             if (!value) {
                 let statData = fs.readFileSync('stats.json');
                 statData = (JSON.parse(statData))
@@ -69,11 +74,11 @@ setInterval(() => {
                 status: 'not valid'
             })
             await fs.writeFileSync('stats.json', JSON.stringify(statData));
-            console.log('not valid: ')
+            console.log('not valid: ' + length)
         }
         // console.log('after waiting -> code');
 
         await page.screenshot({ path: 'screenshot.png' });
         await browser.close();
     })();
-}, 60 * 1000);
+}, 5 * 1000);
